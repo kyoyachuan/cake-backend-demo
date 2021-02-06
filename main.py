@@ -27,6 +27,16 @@ users_table = Airtable(
         'users',
         setting.AIRTABLE_API_KEY,
 )
+orders_table = Airtable(
+        setting.AIRTABLE_BASE_KEY,
+        'orders',
+        setting.AIRTABLE_API_KEY,
+)
+carts_table = Airtable(
+        setting.AIRTABLE_BASE_KEY,
+        'carts',
+        setting.AIRTABLE_API_KEY,
+)
 
 app.add_middleware(
         CORSMiddleware,
@@ -121,5 +131,26 @@ async def get_product(pid: str):
             p['images'] = [i['url'] for i in p['images']]
             products.append(p)
     return JSONResponse(content=jsonable_encoder(products[0]))
+
+
+@app.get("/orders", tags=['orders'])
+async def get_orders(user = Depends(manager)):
+    uid = user['id']
+    orders = orders_table.search('user', uid)
+    orders = [order['fields'] for order in orders]
+    return orders
+
+
+@app.get("/carts", tags=['carts'])
+async def get_carts(user = Depends(manager)):
+    uid = user['id']
+    carts = carts_table.search('user_id', uid)
+    carts = [cart['fields'] for cart in carts]
+    return carts
+
+
+
+
+
 
 
