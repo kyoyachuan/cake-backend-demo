@@ -1,10 +1,13 @@
-from fastapi import FastAPI, Depends
+from typing import Optional
+
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_login.exceptions import InvalidCredentialsException
 from fastapi_login import LoginManager
 from starlette.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
+from pydantic import BaseModel
 from airtable import Airtable
 
 from setting import Setting as setting
@@ -34,6 +37,12 @@ app.add_middleware(
 )
 
 
+class RegisterForm(BaseModel):
+    username: str
+    email: str
+    password: str
+
+
 @manager.user_loader
 def load_user(username: str):  # could also be an asynchronous function
     user = users_table.search('username', username)
@@ -58,6 +67,25 @@ async def login(data: OAuth2PasswordRequestForm = Depends()):
         data=dict(sub=username)
     )
     return {'access_token': access_token, 'token_type': 'bearer'}
+
+
+@app.post('/signup')
+async def signup(data: RegisterForm):
+    username = data.username
+    password = data.password
+    email = data.email
+
+    if len(users_table.search('username', username)) != 0:
+        raise HTTPException(status_code=404, detail="Username used!")
+    elif len(users_table.search('email', email)) != 0:
+        raise HTTPException(status_code=405, detail="Email used!")
+    else:
+        users_table.insert({
+            'username': username,
+            'password': password,
+            'email': email
+        })
+        return {'status': 'success!'}
 
 
 @app.get("/products")
