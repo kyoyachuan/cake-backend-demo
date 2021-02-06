@@ -1,5 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.encoders import jsonable_encoder
+from fastapi.security import OAuth2PasswordRequestForm
+from fastapi_login.exceptions import InvalidCredentialsException
+from fastapi_login import LoginManager
 from starlette.responses import JSONResponse
 from starlette.middleware.cors import CORSMiddleware
 from airtable import Airtable
@@ -8,9 +11,17 @@ from setting import Setting as setting
 
 
 app = FastAPI()
+manager = LoginManager(setting.JWT_SECRET_KEY, tokenUrl='/auth/token')
+
+
 products_table = Airtable(
         setting.AIRTABLE_BASE_KEY,
         'products',
+        setting.AIRTABLE_API_KEY,
+)
+users_table = Airtable(
+        setting.AIRTABLE_BASE_KEY,
+        'users',
         setting.AIRTABLE_API_KEY,
 )
 
@@ -21,6 +32,32 @@ app.add_middleware(
         allow_methods=["*"],
         allow_headers=["*"],
 )
+
+
+@manager.user_loader
+def load_user(email: str):  # could also be an asynchronous function
+    user = users_table.search('email', email)
+    if user:
+        return user[0]['fields']
+    else:
+        return None
+
+
+@app.post('/auth/token')
+async def login(data: OAuth2PasswordRequestForm = Depends()):
+    email = data.username
+    password = data.password
+
+    user = load_user(email)  # we are using the same function to retrieve the user
+    if not user:
+        raise InvalidCredentialsException  # you can also use your own HTTPException
+    elif password != user['password']:
+        raise InvalidCredentialsException
+
+    access_token = manager.create_access_token(
+        data=dict(sub=email)
+    )
+    return {'access_token': access_token, 'token_type': 'bearer'}
 
 
 @app.get("/products")
@@ -46,7 +83,6 @@ async def get_product(pid: str):
     products = []
     for product in products_raw:
         p = product['fields']
-        print(p)
         if p['id'] == pid:
             p['images'] = [i['url'] for i in p['images']]
             products.append(p)
