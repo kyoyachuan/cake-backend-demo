@@ -35,8 +35,8 @@ app.add_middleware(
 
 
 @manager.user_loader
-def load_user(email: str):  # could also be an asynchronous function
-    user = users_table.search('email', email)
+def load_user(username: str):  # could also be an asynchronous function
+    user = users_table.search('username', username)
     if user:
         return user[0]['fields']
     else:
@@ -45,17 +45,17 @@ def load_user(email: str):  # could also be an asynchronous function
 
 @app.post('/auth/token')
 async def login(data: OAuth2PasswordRequestForm = Depends()):
-    email = data.username
+    username = data.username
     password = data.password
 
-    user = load_user(email)  # we are using the same function to retrieve the user
+    user = load_user(username)  # we are using the same function to retrieve the user
     if not user:
         raise InvalidCredentialsException  # you can also use your own HTTPException
     elif password != user['password']:
         raise InvalidCredentialsException
 
     access_token = manager.create_access_token(
-        data=dict(sub=email)
+        data=dict(sub=username)
     )
     return {'access_token': access_token, 'token_type': 'bearer'}
 
