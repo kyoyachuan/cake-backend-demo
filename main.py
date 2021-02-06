@@ -66,7 +66,13 @@ async def login(data: OAuth2PasswordRequestForm = Depends()):
     access_token = manager.create_access_token(
         data=dict(sub=username)
     )
-    return {'access_token': access_token, 'token_type': 'bearer'}
+    return {
+        'access_token': access_token,
+        'token_type': 'Bearer',
+        'num_carts': len(user['carts']),
+        'num_orders': len(user['orders']),
+        'num_cards': len(user['cards']),
+    }
 
 
 @app.post('/signup')
