@@ -52,7 +52,7 @@ def load_user(username: str):  # could also be an asynchronous function
         return None
 
 
-@app.post('/auth/token')
+@app.post('/auth/token', tags=['login'])
 async def login(data: OAuth2PasswordRequestForm = Depends()):
     username = data.username
     password = data.password
@@ -75,7 +75,7 @@ async def login(data: OAuth2PasswordRequestForm = Depends()):
     }
 
 
-@app.post('/signup')
+@app.post('/signup', tags=['signup'])
 async def signup(data: RegisterForm):
     username = data.username
     password = data.password
@@ -94,7 +94,7 @@ async def signup(data: RegisterForm):
         return {'status': 'success!'}
 
 
-@app.get("/products")
+@app.get("/products", tags=['products'])
 async def get_products(category: str = None):
     products_raw = products_table.get_all(fields=['id', 'name', 'main_image', 'price', 'category'])
     products = []
@@ -111,7 +111,7 @@ async def get_products(category: str = None):
     return JSONResponse(content=jsonable_encoder(products))
 
 
-@app.get("/products/{pid}")
+@app.get("/products/{pid}", tags=['products'])
 async def get_product(pid: str):
     products_raw = products_table.get_all(fields=['id', 'name', 'images', 'price', 'category', 'short_description', 'description', 'weight', 'dimensions'])
     products = []
