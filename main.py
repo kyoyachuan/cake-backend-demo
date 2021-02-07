@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
@@ -65,6 +65,10 @@ class CartsUpdateQuantity(BaseModel):
 
 class Carts(BaseModel):
     id: str
+
+
+class CartsToOrders(BaseModel):
+    ids: List[str]
 
 
 @manager.user_loader
@@ -156,10 +160,42 @@ async def get_orders(user = Depends(manager)):
     return orders
 
 
+@app.post("/make_orders", tags=['orders'])
+async def make_orders(data: CartsToOrders, user = Depends(manager)):
+    urid = user['record_id']
+    cids = data.ids
+
+    products_id_list = []
+    product_quantity = []
+    amount = 0
+    for cid in cids:
+        cart = carts_table.search('id', cid)[0]['fields']
+        if 'product' in cart.keys():
+            products_id_list.append(cart['product'][0])
+            product_quantity.append(str(cart['product_quantity']))
+            amount = amount + (cart['product_quantity'] * cart['product_price'][0])
+
+    order = {
+        'user': [urid],
+        'products': products_id_list,
+        'product_quantity': ','.join(product_quantity),
+        'amount': amount,
+    }
+
+    print(order)
+
+    result = orders_table.insert(order)
+
+    for cid in cids:
+        carts_table.delete_by_field('id', cid)
+
+    return result
+
+
 @app.get("/carts", tags=['carts'])
 async def get_carts(user = Depends(manager)):
     uid = user['id']
-    carts = carts_table.search('user_id', uid)
+    carts = carts_table.search('user', uid)
     carts = [cart['fields'] for cart in carts]
     return carts
 
