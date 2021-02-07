@@ -98,7 +98,7 @@ async def login(data: OAuth2PasswordRequestForm = Depends()):
     return {
         'access_token': access_token,
         'token_type': 'Bearer',
-        'num_carts': len(user['carts']) if 'carts' in user.keys() else 0,
+        'num_carts': sum(user['total_carts']) if 'total_carts' in user.keys() else 0,
         'num_orders': len(user['orders']) if 'orders' in user.keys() else 0,
         'num_cards': len(user['cards']) if 'cards' in user.keys() else 0,
     }
@@ -172,8 +172,8 @@ async def make_orders(data: CartsToOrders, user = Depends(manager)):
         cart = carts_table.search('id', cid)[0]['fields']
         if 'product' in cart.keys():
             products_id_list.append(cart['product'][0])
-            product_quantity.append(str(cart['product_quantity']))
-            amount = amount + (cart['product_quantity'] * cart['product_price'][0])
+            product_quantity.append(str(cart['quantity']))
+            amount = amount + (cart['quantity'] * cart['product_price'][0])
 
     order = {
         'user': [urid],
@@ -212,7 +212,7 @@ async def put_product_to_carts(data: ProductToCarts, user = Depends(manager)):
     data_insert = {
         'user': [urid],
         'product': [prid],
-        'product_quantity': quantity,
+        'quantity': quantity,
     }
 
     result = carts_table.insert(data_insert)
@@ -227,7 +227,7 @@ async def update_carts(data: CartsUpdateQuantity, user = Depends(manager)):
 
     record = carts_table.search('id', cid)[0]
 
-    result = carts_table.update(record['id'], {'product_quantity': quantity})
+    result = carts_table.update(record['id'], {'quantity': quantity})
     return result['fields']
 
 
