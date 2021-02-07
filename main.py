@@ -182,8 +182,6 @@ async def make_orders(data: CartsToOrders, user = Depends(manager)):
         'amount': amount,
     }
 
-    print(order)
-
     result = orders_table.insert(order)
 
     for cid in cids:
@@ -200,8 +198,8 @@ async def get_carts(user = Depends(manager)):
     return carts
 
 
-@app.post("/put_product_to_carts", tags=['carts'])
-async def put_product_to_carts(data: ProductToCarts, user = Depends(manager)):
+@app.post("/add_product_to_carts", tags=['carts'])
+async def add_product_to_carts(data: ProductToCarts, user = Depends(manager)):
     urid = user['record_id']
     pid = data.id
     quantity = data.quantity
