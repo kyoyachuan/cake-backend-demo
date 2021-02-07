@@ -1,8 +1,13 @@
+import os
+import base64
+from datetime import datetime
 from typing import List, Optional
 
+import aiofiles
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordRequestForm
+from fastapi.staticfiles import StaticFiles
 from fastapi_login.exceptions import InvalidCredentialsException
 from fastapi_login import LoginManager
 from fastapi.responses import JSONResponse
@@ -13,13 +18,22 @@ from airtable import Airtable
 from setting import Setting as setting
 
 
-app = FastAPI()
-manager = LoginManager(setting.JWT_SECRET_KEY, tokenUrl='/auth/token')
+if not os.path.exists('images'):
+    os.makedirs('images')
 
+app = FastAPI()
+app.mount("/images", StaticFiles(directory="images"), name="images")
+
+manager = LoginManager(setting.JWT_SECRET_KEY, tokenUrl='/auth/token')
 
 products_table = Airtable(
         setting.AIRTABLE_BASE_KEY,
         'products',
+        setting.AIRTABLE_API_KEY,
+)
+cards_table = Airtable(
+        setting.AIRTABLE_BASE_KEY,
+        'cards',
         setting.AIRTABLE_API_KEY,
 )
 users_table = Airtable(
@@ -56,6 +70,12 @@ class RegisterForm(BaseModel):
 class ProductToCarts(BaseModel):
     id: str
     quantity: Optional[int] = 1
+
+
+class Card(BaseModel):
+    name: str
+    front: str
+    back: str
 
 
 class CartsUpdateQuantity(BaseModel):
@@ -167,6 +187,7 @@ async def make_orders(data: CartsToOrders, user = Depends(manager)):
 
     products_id_list = []
     product_quantity = []
+    cards_id_list = []
     amount = 0
     for cid in cids:
         cart = carts_table.search('id', cid)[0]['fields']
@@ -174,6 +195,8 @@ async def make_orders(data: CartsToOrders, user = Depends(manager)):
             products_id_list.append(cart['product'][0])
             product_quantity.append(str(cart['quantity']))
             amount = amount + (cart['quantity'] * cart['product_price'][0])
+        elif 'card' in cart.keys():
+            cards_id_list.append(cart['card'][0])
 
     order = {
         'user': [urid],
@@ -181,6 +204,8 @@ async def make_orders(data: CartsToOrders, user = Depends(manager)):
         'product_quantity': ','.join(product_quantity),
         'amount': amount,
     }
+    if cards_id_list:
+        order['cards'] = cards_id_list
 
     result = orders_table.insert(order)
 
@@ -215,6 +240,38 @@ async def add_product_to_carts(data: ProductToCarts, user = Depends(manager)):
 
     result = carts_table.insert(data_insert)
     return result['fields']
+
+
+@app.post("/add_card_to_carts", tags=['carts'])
+async def add_card_to_carts(data: Card, user = Depends(manager)):
+    urid = user['record_id']
+    file_name = datetime.now().strftime("%Y%m%d%H%M%S") + '.png'
+    front_imgdata = base64.b64decode(data.front)
+    back_imgdata = base64.b64decode(data.back)
+
+    async with aiofiles.open('images/front_' + file_name, mode='wb') as f:
+        await f.write(front_imgdata)
+    async with aiofiles.open('images/back_' + file_name, mode='wb') as f:
+        await f.write(back_imgdata)
+
+    card_data = {
+        'user': [urid],
+        'name': data.name,
+        'front': [{'url': setting.HOSTNAME + f'images/front_{file_name}'}],
+        'back': [{'url': setting.HOSTNAME + f'images/back_{file_name}'}],
+        'price': 0,
+    }
+
+    card_result = cards_table.insert(card_data)
+
+    cart_data = {
+        'user': [urid],
+        'card': [card_result['id']],
+        'quantity': 1,
+    }
+
+    cart_result = carts_table.insert(cart_data)
+    return cart_result
 
 
 @app.patch("/update_carts", tags=['carts'])

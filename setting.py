@@ -6,3 +6,4 @@ class Setting:
     AIRTABLE_API_KEY = os.getenv('AIRTABLE_API_KEY')
 
     JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY')
+    HOSTNAME = os.getenv('HOSTNAME')
