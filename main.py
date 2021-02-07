@@ -164,8 +164,8 @@ async def get_carts(user = Depends(manager)):
     return carts
 
 
-@app.post("/put_to_carts", tags=['carts'])
-async def put_to_carts(data: ProductToCarts, user = Depends(manager)):
+@app.post("/put_product_to_carts", tags=['carts'])
+async def put_product_to_carts(data: ProductToCarts, user = Depends(manager)):
     urid = user['record_id']
     pid = data.id
     quantity = data.quantity
