@@ -5,8 +5,8 @@ from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi_login.exceptions import InvalidCredentialsException
 from fastapi_login import LoginManager
-from starlette.responses import JSONResponse
-from starlette.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from airtable import Airtable
 
