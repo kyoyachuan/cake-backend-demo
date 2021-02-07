@@ -77,7 +77,7 @@ def load_user(username: str):  # could also be an asynchronous function
         return None
 
 
-@app.post('/auth/token', tags=['login'])
+@app.post('/auth/token', tags=['users'])
 async def login(data: OAuth2PasswordRequestForm = Depends()):
     username = data.username
     password = data.password
@@ -96,11 +96,11 @@ async def login(data: OAuth2PasswordRequestForm = Depends()):
         'token_type': 'Bearer',
         'num_carts': len(user['carts']) if 'carts' in user.keys() else 0,
         'num_orders': len(user['orders']) if 'orders' in user.keys() else 0,
-        'num_cards': len(user['cards']) if 'cards' in user.keys() else 0, 
+        'num_cards': len(user['cards']) if 'cards' in user.keys() else 0,
     }
 
 
-@app.post('/signup', tags=['signup'])
+@app.post('/signup', tags=['users'])
 async def signup(data: RegisterForm):
     username = data.username
     password = data.password
