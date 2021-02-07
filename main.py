@@ -57,6 +57,7 @@ class RegisterForm(BaseModel):
 def load_user(username: str):  # could also be an asynchronous function
     user = users_table.search('username', username)
     if user:
+        user[0]['fields']['record_id'] = user[0]['id']
         return user[0]['fields']
     else:
         return None
