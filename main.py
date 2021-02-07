@@ -141,7 +141,7 @@ async def get_products(category: str = None):
 
 
 @app.get("/products/{pid}", tags=['products'])
-async def get_product(pid: str):
+async def get_product(pid: int):
     products_raw = products_table.get_all(fields=['id', 'name', 'images', 'price', 'category', 'short_description', 'description', 'weight', 'dimensions'])
     products = []
     for product in products_raw:
