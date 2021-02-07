@@ -53,6 +53,20 @@ class RegisterForm(BaseModel):
     password: str
 
 
+class ProductToCarts(BaseModel):
+    id: str
+    quantity: Optional[int] = 1
+
+
+class CartsUpdateQuantity(BaseModel):
+    id: str
+    quantity: int
+
+
+class Carts(BaseModel):
+    id: str
+
+
 @manager.user_loader
 def load_user(username: str):  # could also be an asynchronous function
     user = users_table.search('username', username)
@@ -150,8 +164,45 @@ async def get_carts(user = Depends(manager)):
     return carts
 
 
+@app.post("/put_to_carts", tags=['carts'])
+async def put_to_carts(data: ProductToCarts, user = Depends(manager)):
+    urid = user['record_id']
+    pid = data.id
+    quantity = data.quantity
+
+    product = products_table.search('id', pid)[0]
+    prid = product['id']
+
+    data_insert = {
+        'user': [urid],
+        'product': [prid],
+        'product_quantity': quantity,
+    }
+
+    result = carts_table.insert(data_insert)
+    return result['fields']
 
 
+@app.patch("/update_carts", tags=['carts'])
+async def update_carts(data: CartsUpdateQuantity, user = Depends(manager)):
+    urid = user['record_id']
+    cid = data.id
+    quantity = data.quantity
 
+    record = carts_table.search('id', cid)[0]
+
+    result = carts_table.update(record['id'], {'product_quantity': quantity})
+    return result['fields']
+
+
+@app.delete("/delete_carts", tags=['carts'])
+async def delete_carts(data: Carts, user = Depends(manager)):
+    urid = user['record_id']
+    cid = data.id
+
+    record = carts_table.search('id', cid)[0]
+
+    carts_table.delete(record['id'])
+    return {'message': 'success!'}
 
 
