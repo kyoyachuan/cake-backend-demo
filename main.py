@@ -118,6 +118,7 @@ async def login(data: OAuth2PasswordRequestForm = Depends()):
     return {
         'access_token': access_token,
         'token_type': 'Bearer',
+        'username': username,
         'num_carts': sum(user['total_carts']) if 'total_carts' in user.keys() else 0,
         'num_orders': len(user['orders']) if 'orders' in user.keys() else 0,
         'num_cards': len(user['cards']) if 'cards' in user.keys() else 0,
