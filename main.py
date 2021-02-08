@@ -246,8 +246,10 @@ async def add_product_to_carts(data: ProductToCarts, user = Depends(manager)):
 async def add_card_to_carts(data: Card, user = Depends(manager)):
     urid = user['record_id']
     file_name = datetime.now().strftime("%Y%m%d%H%M%S") + '.png'
-    front_imgdata = base64.b64decode(data.front)
-    back_imgdata = base64.b64decode(data.back)
+    front_imgstr = data.front[data.front.find(",")+1:]
+    back_imgstr = data.back[data.back.find(",")+1:]
+    front_imgdata = base64.b64decode(front_imgstr)
+    back_imgdata = base64.b64decode(back_imgstr)
 
     async with aiofiles.open('images/front_' + file_name, mode='wb') as f:
         await f.write(front_imgdata)
