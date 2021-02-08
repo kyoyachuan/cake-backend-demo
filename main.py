@@ -219,6 +219,11 @@ async def get_carts(user = Depends(manager)):
     uid = user['id']
     carts = carts_table.search('user', uid)
     carts = [cart['fields'] for cart in carts]
+    for cart in carts:
+        if 'product_main_image' in cart.keys():
+            cart['product_main_image'] = cart['product_main_image'][0]['url']
+        elif 'card_front' in cart.keys():
+            cart['card_front'] = cart['card_front'][0]['url']
     return carts
 
 
