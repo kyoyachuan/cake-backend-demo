@@ -163,14 +163,12 @@ async def get_products(category: str = None):
 
 @app.get("/products/{pid}", tags=['products'])
 async def get_product(pid: int):
-    products_raw = products_table.get_all(fields=['id', 'name', 'images', 'price', 'category', 'short_description', 'description', 'weight', 'dimensions'])
-    products = []
-    for product in products_raw:
-        p = product['fields']
-        if p['id'] == pid:
-            p['images'] = [i['url'] for i in p['images']]
-            products.append(p)
-    return JSONResponse(content=jsonable_encoder(products[0]))
+    product = products_table.search(
+            'id', pid,
+            fields=['id', 'name', 'images', 'price', 'category', 'short_description', 'description', 'weight', 'dimensions']
+    )[0]['fields']
+    product['images'] = [i['url'] for i in product['images']]
+    return JSONResponse(content=jsonable_encoder(product))
 
 
 @app.get("/orders", tags=['orders'])
