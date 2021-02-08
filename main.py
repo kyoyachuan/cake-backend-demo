@@ -1,6 +1,6 @@
 import os
 import base64
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import List, Optional
 
 import aiofiles
@@ -113,7 +113,7 @@ async def login(data: OAuth2PasswordRequestForm = Depends()):
         raise InvalidCredentialsException
 
     access_token = manager.create_access_token(
-        data=dict(sub=username)
+        data=dict(sub=username), expires_delta=timedelta(hours=24)
     )
     return {
         'access_token': access_token,
