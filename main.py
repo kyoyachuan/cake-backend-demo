@@ -68,7 +68,7 @@ class RegisterForm(BaseModel):
 
 
 class ProductToCarts(BaseModel):
-    id: str
+    id: int
     quantity: Optional[int] = 1
 
 
@@ -233,16 +233,28 @@ async def add_product_to_carts(data: ProductToCarts, user = Depends(manager)):
     pid = data.id
     quantity = data.quantity
 
-    product = products_table.search('id', pid)[0]
-    prid = product['id']
+    carts = carts_table.search('user', user['id'])
+    product_in_carts = None
+    if carts:
+        product_in_carts = [cart for cart in carts if 'product_id' in cart['fields'].keys() and cart['fields']['product_id'][0] == pid]
 
-    data_insert = {
-        'user': [urid],
-        'product': [prid],
-        'quantity': quantity,
-    }
+    if product_in_carts:
+        cart_record_id = product_in_carts[0]['id']
+        quantity += product_in_carts[0]['fields']['quantity']
+        result = carts_table.update(cart_record_id, {'quantity': quantity})
 
-    result = carts_table.insert(data_insert)
+    else:
+        product = products_table.search('id', pid)[0]
+        prid = product['id']
+
+        data_insert = {
+            'user': [urid],
+            'product': [prid],
+            'quantity': quantity,
+        }
+
+        result = carts_table.insert(data_insert)
+
     return result['fields']
 
 
