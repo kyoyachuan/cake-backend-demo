@@ -79,16 +79,16 @@ class Card(BaseModel):
 
 
 class CartsUpdateQuantity(BaseModel):
-    id: str
+    id: int
     quantity: int
 
 
 class Carts(BaseModel):
-    id: str
+    id: int
 
 
 class CartsToOrders(BaseModel):
-    ids: List[str]
+    ids: List[int]
 
 
 @manager.user_loader
