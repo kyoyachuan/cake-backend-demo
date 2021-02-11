@@ -251,6 +251,7 @@ async def add_product_to_carts(data: ProductToCarts, user = Depends(manager)):
             'user': [urid],
             'product': [prid],
             'quantity': quantity,
+            'type': 'product',
         }
 
         result = carts_table.insert(data_insert)
@@ -286,6 +287,7 @@ async def add_card_to_carts(data: Card, user = Depends(manager)):
         'user': [urid],
         'card': [card_result['id']],
         'quantity': 1,
+        'type': 'card',
     }
 
     cart_result = carts_table.insert(cart_data)
