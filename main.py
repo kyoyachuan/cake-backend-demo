@@ -110,7 +110,7 @@ async def login(data: OAuth2PasswordRequestForm = Depends()):
     if not user:
         raise HTTPException(status_code=406, detail="User was not exists!")
     elif password != user['password']:
-        raise HTTPException(status_code=407, detail="Password was wrong!")
+        raise HTTPException(status_code=408, detail="Password was wrong!")
 
     access_token = manager.create_access_token(
         data=dict(sub=username), expires_delta=timedelta(hours=24)
