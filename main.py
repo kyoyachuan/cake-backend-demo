@@ -108,9 +108,9 @@ async def login(data: OAuth2PasswordRequestForm = Depends()):
 
     user = load_user(username)  # we are using the same function to retrieve the user
     if not user:
-        raise InvalidCredentialsException  # you can also use your own HTTPException
+        raise HTTPException(status_code=406, detail="User was not exists!")
     elif password != user['password']:
-        raise InvalidCredentialsException
+        raise HTTPException(status_code=407, detail="Password was wrong!")
 
     access_token = manager.create_access_token(
         data=dict(sub=username), expires_delta=timedelta(hours=24)
