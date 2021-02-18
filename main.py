@@ -144,18 +144,19 @@ async def signup(data: RegisterForm):
 
 @app.get("/products", tags=['products'])
 async def get_products(category: str = None):
-    products_raw = products_table.get_all(fields=['id', 'name', 'main_image', 'price', 'category'])
+    if not category:
+        products_raw = products_table.get_all(fields=['id', 'name', 'main_image', 'price', 'category'])
+    else:
+        products_raw = products_table.search(
+                'category', category,
+                fields=['id', 'name', 'main_image', 'price', 'category']
+        )
     products = []
     for product in products_raw:
         p = product['fields']
-        if not category:
-            p['image'] = p['main_image'][0]['url']
-            p.pop('main_image')
-            products.append(p)
-        elif p['category'] == category:
-            p['image'] = p['main_image'][0]['url']
-            p.pop('main_image')
-            products.append(p)
+        p['image'] = p['main_image'][0]['url']
+        p.pop('main_image')
+        products.append(p)
     return products
 
 
