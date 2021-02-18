@@ -5,12 +5,10 @@ from typing import List, Optional
 
 import aiofiles
 from fastapi import FastAPI, Depends, HTTPException
-from fastapi.encoders import jsonable_encoder
 from fastapi.security import OAuth2PasswordRequestForm
 from fastapi.staticfiles import StaticFiles
 from fastapi_login.exceptions import InvalidCredentialsException
 from fastapi_login import LoginManager
-from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from airtable import Airtable
@@ -158,7 +156,7 @@ async def get_products(category: str = None):
             p['image'] = p['main_image'][0]['url']
             p.pop('main_image')
             products.append(p)
-    return JSONResponse(content=jsonable_encoder(products))
+    return products
 
 
 @app.get("/products/{pid}", tags=['products'])
@@ -168,7 +166,7 @@ async def get_product(pid: int):
             fields=['id', 'name', 'images', 'price', 'category', 'short_description', 'description', 'weight', 'dimensions']
     )[0]['fields']
     product['images'] = [i['url'] for i in product['images']]
-    return JSONResponse(content=jsonable_encoder(product))
+    return product
 
 
 @app.get("/orders", tags=['orders'])
