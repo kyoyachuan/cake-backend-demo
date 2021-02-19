@@ -111,7 +111,7 @@ async def login(data: OAuth2PasswordRequestForm = Depends()):
         raise HTTPException(status_code=408, detail="Password was wrong!")
 
     access_token = manager.create_access_token(
-        data=dict(sub=username), expires_delta=timedelta(hours=24)
+        data=dict(sub=username), expires=timedelta(hours=24)
     )
     return {
         'access_token': access_token,
