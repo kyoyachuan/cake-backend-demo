@@ -160,7 +160,7 @@ async def add_product_to_carts(data: schemas.ProductToCarts, user=Depends(manage
             break
 
     if product_in_carts:
-        crud.update_cart(db, data)
+        crud.update_cart(db, schemas.CartsUpdateQuantity(id=product_in_carts.id, quantity=data.quantity))
     else:
         crud.create_cart_with_product(db, data, user.id, timestamp)
     return {'status': 'success!'}
