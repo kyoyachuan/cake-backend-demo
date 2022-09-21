@@ -6,5 +6,5 @@ aiofiles==0.6.0
 airtable-python-wrapper==0.15.2
 python-multipart==0.0.5
 sqlalchemy~=1.4.39
-cloudinary~=1.29.0
+cloudinary~=1.30.0
 psycopg2-binary~=2.9.3
