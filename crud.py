@@ -35,9 +35,11 @@ def create_user(db: Session, user: schemas.RegisterForm):
 
 
 def get_products(db: Session, skip: int = 0, limit: int = 100, category: str = None):
-    dbq = db.query(models.Products, models.Categories)
     if category:
+        dbq = db.query(models.Products, models.Categories)
         dbq = dbq.filter(models.Categories.name == category)
+    else:
+        dbq = db.query(models.Products)
     return dbq.offset(skip).limit(limit).all()
 
 

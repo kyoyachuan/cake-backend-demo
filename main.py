@@ -109,6 +109,11 @@ async def get_card_decorations(db: Session = Depends(get_db)):
     return crud.get_card_decorations(db)
 
 
+@app.get("/cards", tags=['cards'])
+async def get_cards(user=Depends(manager), db: Session = Depends(get_db)):
+    return crud.get_cards(db, user.id)
+
+
 @app.get("/orders", tags=['orders'])
 async def get_orders(user=Depends(manager), db: Session = Depends(get_db)):
     return crud.get_orders(db, user.id)
